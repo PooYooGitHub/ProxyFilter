@@ -1,0 +1,92 @@
+# Clash Verge 配置文件
+
+# 代理服务器监听的端口
+port: 7890
+socks-port: 7891
+allow-lan: true # 允许局域网设备连接，如手机通过电脑代理
+mode: rule # 规则模式，根据下面的 rules 分流
+log-level: info # 日志等级
+
+# DNS 设置
+dns:
+  enable: true
+  listen: 0.0.0.0:53
+  enhanced-mode: redir-host
+  fallback:
+    - 8.8.8.8
+    - 1.1.1.1
+  nameserver:
+    - 223.5.5.5
+    - https://dns.alidns.com/dns-query
+
+# 代理节点列表 (Proxies)
+# 这里是根据您提供的信息转换而来的节点
+proxies:
+  - name: "HK 01" # 节点命名，方便区分
+    type: ss
+    server: cs6al-g04.hk01-ae5.entry.v50307shvkaa.art
+    port: 19274
+    cipher: aes-256-gcm
+    password: "04a471b1-6b37-3256-b437-be38369b5053"
+    udp: true # 建议开启 UDP 转发
+
+  - name: "HK 02"
+    type: ss
+    server: iwoe2-g04.hk02-ae5.entry.v50307shvkaa.art
+    port: 14562
+    cipher: aes-256-gcm
+    password: "04a471b1-6b37-3256-b437-be38369b5053"
+    udp: true
+
+  - name: "HK 03"
+    type: ss
+    server: g99bl-g04.hk03-ae5.entry.v50307shvkaa.art
+    port: 762
+    cipher: aes-256-gcm
+    password: "04a471b1-6b37-3256-b437-be38369b5053"
+    udp: true
+
+  - name: "HK 05"
+    type: ss
+    server: ia3wd-g04.hk05-ae5.entry.v50307shvkaa.art
+    port: 1814
+    cipher: aes-256-gcm
+    password: "04a471b1-6b37-3256-b437-be38369b5053"
+    udp: true
+
+# 代理组配置 (Proxy Groups)
+# 在这里组织你的节点，方便切换
+proxy-groups:
+  - name: "🚀 节点选择" # 这是你手动选择节点的策略组
+    type: select
+    proxies:
+      - "HK 01"
+      - "HK 02"
+      - "HK 03"
+      - "HK 05"
+
+  - name: "国外流量" # 访问国外网站时使用的策略
+    type: select
+    proxies:
+      - "🚀 节点选择" # 默认使用你在“节点选择”里选的节点
+      - DIRECT # 也可以选择直连
+
+  - name: "国内流量" # 访问国内网站时使用的策略
+    type: select
+    proxies:
+      - DIRECT # 国内网站一律直连
+      - "🚀 节点选择"
+
+# 路由规则 (Rules)
+# 决定了哪些流量走哪个代理组
+rules:
+  # 广告拦截 (可选)
+  - DOMAIN-SUFFIX,ad.com,REJECT
+  # 国内网站直连
+  - DOMAIN-SUFFIX,cn,国内流量
+  - GEOIP,CN,国内流量
+  # 局域网直连
+  - IP-CIDR,127.0.0.0/8,DIRECT
+  - IP-CIDR,192.168.0.0/16,DIRECT
+  # 剩下的所有流量都走“国外流量”组
+  - MATCH,国外流量
